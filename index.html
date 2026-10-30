@@ -133,7 +133,36 @@
   .info .add{position:absolute;top:8px;right:8px;width:24px;height:24px;display:grid;place-items:center;border:1px solid #fff;
       background:rgba(0,0,0,.45);font-size:.85rem;clip-path:polygon(5px 0,100% 0,100% calc(100% - 5px),calc(100% - 5px) 100%,0 100%,0 5px);transition:.25s var(--curva)}
   .info .add:hover{background:#fff;color:#000}
-  .eq{position:absolute;top:13px;right:40px;display:none;gap:2px;align-items:flex-end;height:12px}
+  .info .det{position:absolute;top:8px;right:38px;height:24px;padding:0 8px;display:flex;align-items:center;gap:4px;border:1px solid rgba(255,255,255,.7);
+      background:rgba(0,0,0,.45);font-family:var(--mono);font-size:.5rem;text-transform:uppercase;letter-spacing:.06em;
+      clip-path:polygon(5px 0,100% 0,100% calc(100% - 5px),calc(100% - 5px) 100%,0 100%,0 5px);transition:.25s var(--curva)}
+  .info .det:hover{background:#fff;color:#000}
+  /* Janela de detalhes de um jogo */
+  .modal{position:fixed;inset:0;z-index:100;display:grid;place-items:center;padding:20px;background:rgba(3,4,8,.72);backdrop-filter:blur(10px);
+      opacity:0;pointer-events:none;transition:opacity .35s var(--curva)}
+  .modal.aberto{opacity:1;pointer-events:auto}
+  .janela{width:min(940px,100%);max-height:92vh;overflow:auto;background:var(--painel);border:1px solid var(--borda2);position:relative;
+      clip-path:polygon(18px 0,100% 0,100% calc(100% - 18px),calc(100% - 18px) 100%,0 100%,0 18px);
+      transform:translateY(24px) scale(.97);transition:transform .45s var(--curva)}
+  .modal.aberto .janela{transform:none}
+  .topo-jogo{height:210px;position:relative;display:flex;align-items:flex-end;padding:22px 26px;background-size:cover;background-position:center}
+  .topo-jogo::after{content:"";position:absolute;inset:0;background:linear-gradient(0deg,var(--painel) 0%,rgba(13,15,22,.35) 60%,transparent)}
+  .topo-jogo .icone-g{position:absolute;left:50%;top:40%;width:80px;height:80px;transform:translate(-50%,-50%);color:#fff;
+      filter:drop-shadow(0 0 14px rgba(255,255,255,.5)) drop-shadow(0 0 30px var(--cor))}
+  .topo-jogo .icone-g svg{width:100%;height:100%}
+  .topo-jogo > div{position:relative;z-index:1}
+  .topo-jogo h3{font-family:var(--tit);font-size:clamp(1.6rem,4vw,2.3rem);line-height:1.05}
+  .etiquetas{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+  .etq{font-family:var(--mono);font-size:.7rem;padding:4px 9px;border:1px solid var(--borda2);background:rgba(0,0,0,.35);display:flex;align-items:center;gap:6px}
+  .etq svg{width:12px;height:12px}
+  .etq.cat{color:var(--cor);border-color:color-mix(in srgb,var(--cor) 50%,transparent)}
+  .corpo-jogo{padding:6px 26px 26px}
+  .corpo-jogo .niveis{margin:14px 0 18px}
+  .acoes-jogo{display:flex;gap:10px;flex-wrap:wrap}
+  .fechar{position:absolute;top:14px;right:14px;z-index:2;width:36px;height:36px;display:grid;place-items:center;background:rgba(0,0,0,.55);
+      border:1px solid var(--borda2);font-size:1.1rem;clip-path:var(--corte)}
+  .fechar:hover{background:#fff;color:#000}
+  .eq{position:absolute;top:13px;right:96px;display:none;gap:2px;align-items:flex-end;height:12px}
   .carta.tocando .eq{display:flex}
   .eq i{width:3px;background:var(--cor);box-shadow:0 0 6px var(--cor);animation:eq .5s ease-in-out infinite alternate}
   .eq i:nth-child(2){animation-delay:.18s}.eq i:nth-child(3){animation-delay:.36s}.eq i:nth-child(4){animation-delay:.1s}
@@ -230,7 +259,7 @@
   <section class="hero">
     <div class="kicker">Diagnóstico de hardware</div>
     <h1>Descubra o PC certo para os seus <span>5 jogos</span></h1>
-    <p>Navegue pelas categorias, escolha até 5 jogos e veja o processador, a placa de vídeo e a memória que você precisa para jogar no gráfico baixo, médio e alto.</p>
+    <p>Quer saber de um jogo só? Passe o mouse nele e clique em <b>Ver requisitos</b>. Quer montar um PC para vários? Escolha de 1 a 5 jogos e veja o processador, a placa de vídeo e a memória para o gráfico baixo, médio e alto.</p>
     <div class="stats">
       <div class="stat"><b id="totalJogos">0</b><small>Jogos</small></div>
       <div class="stat"><b id="totalCats">0</b><small>Categorias</small></div>
@@ -255,6 +284,9 @@
   <div style="margin-top:20px"><button class="btn-sec" id="voltar">← Trocar jogos</button></div>
   <p class="aviso"><b>[!]</b><span>Valores aproximados, pensados para resolução 1080p (Full HD) e cerca de 60 FPS. Os jogos mais famosos usam os requisitos oficiais; os outros usam uma estimativa pelo "peso" do jogo. Peças equivalentes (Intel ou AMD, NVIDIA ou AMD) também funcionam, e atualizações dos jogos podem mudar os requisitos.</span></p>
 </section>
+
+<!-- Janela com os requisitos de um jogo só -->
+<div class="modal" id="modal"><div class="janela" id="janela"></div></div>
 
 <footer class="creditos" id="creditos" style="display:none">Dados e imagens dos jogos: <a href="https://rawg.io" target="_blank" rel="noopener">RAWG</a></footer>
 
@@ -577,6 +609,7 @@ function criarCarta(i){
     </div>
     <div class="info">
       <button class="add" title="Escolher">+</button>
+      <button class="det" title="Ver requisitos só deste jogo">Ver requisitos</button>
       <div class="eq"><i></i><i></i><i></i><i></i></div>
       <div class="t">${j.n}</div>
       <div class="linha"><span class="peso">${[1,2,3,4,5].map(k => `<i class="${k <= p ? "on" : ""}"></i>`).join("")}</span> ${NOMES_PESO[p]} · ${j.d} GB</div>
@@ -585,6 +618,7 @@ function criarCarta(i){
       <div class="linha"><span class="dot r"></span> Alto: ${j.t[2][2].split(" / ")[0]}</div>
     </div>`;
   el.onclick = () => alternar(i);
+  el.querySelector(".det").onclick = e => { e.stopPropagation(); abrirDetalhe(i); };
   el.onkeydown = e => { if (e.key === "Enter") alternar(i); };
   el.onmouseenter = () => {
     const r = el.getBoundingClientRect();
@@ -700,25 +734,75 @@ function mostrarResultado(){
   const espaco = jogos.reduce((s, j) => s + j.d, 0);
   $("sub").textContent = `Espaço total para instalar todos: cerca de ${espaco} GB (de preferência em SSD).`;
   $("escolhidosRes").innerHTML = escolhidos.map(i => `<div class="slot cheio" style="background:${fundoSlot(i)}">${slotHTML(JOGOS[i])}</div>`).join("");
-  $("niveis").innerHTML = NIVEIS.map((nv, k) => {
-    const cpu = jogos.reduce((a, b) => b.t[k][1] > a.t[k][1] ? b : a);
-    const gpu = jogos.reduce((a, b) => b.t[k][3] > a.t[k][3] ? b : a);
-    const ram = Math.max(...jogos.map(j => j.t[k][4]));
-    return `<div class="nivel ${nv.id}">
-        <div class="num">NÍVEL 0${k + 1}</div>
-        <h3>${nv.nome}</h3><p class="desc">${nv.desc}</p>
-        <div class="peca"><div class="ic">${svg("chip")}</div><div><small>Processador</small><strong>${cpu.t[k][0]}</strong><div class="por">exigido por ${cpu.n}</div></div></div>
-        <div class="peca"><div class="ic">${svg("gpu")}</div><div><small>Placa de vídeo</small><strong>${gpu.t[k][2]}</strong><div class="por">exigida por ${gpu.n}</div></div></div>
-        <div class="peca"><div class="ic">${svg("ram")}</div><div><small>Memória RAM</small><strong>${ram} GB</strong></div></div>
-        <div class="peca"><div class="ic">${svg("disco")}</div><div><small>Armazenamento</small><strong>${espaco} GB livres</strong></div></div>
-      </div>`;
-  }).join("");
+  $("niveis").innerHTML = cartoesNiveis(jogos, espaco, true);
   desenharAbas(0);
   $("catalogo").style.display = "none";
   $("bandeja").classList.remove("aberta");
   $("resultado").style.display = "block";
   window.scrollTo({top: 0, behavior: "smooth"});
 }
+
+/* ===== Cartões dos 3 níveis (usados no resultado e na janela de um jogo) =====
+   Em cada nível, o PC precisa aguentar o jogo MAIS PESADO da lista. */
+function cartoesNiveis(jogos, espaco, mostrarQuem){
+  return NIVEIS.map((nv, k) => {
+    const cpu = jogos.reduce((a, b) => b.t[k][1] > a.t[k][1] ? b : a);
+    const gpu = jogos.reduce((a, b) => b.t[k][3] > a.t[k][3] ? b : a);
+    const ram = Math.max(...jogos.map(j => j.t[k][4]));
+    const quem = (j, txt) => mostrarQuem && jogos.length > 1 ? `<div class="por">${txt} por ${j.n}</div>` : "";
+    return `<div class="nivel ${nv.id}">
+        <div class="num">NÍVEL 0${k + 1}</div>
+        <h3>${nv.nome}</h3><p class="desc">${nv.desc}</p>
+        <div class="peca"><div class="ic">${svg("chip")}</div><div><small>Processador</small><strong>${cpu.t[k][0]}</strong>${quem(cpu, "exigido")}</div></div>
+        <div class="peca"><div class="ic">${svg("gpu")}</div><div><small>Placa de vídeo</small><strong>${gpu.t[k][2]}</strong>${quem(gpu, "exigida")}</div></div>
+        <div class="peca"><div class="ic">${svg("ram")}</div><div><small>Memória RAM</small><strong>${ram} GB</strong></div></div>
+        <div class="peca"><div class="ic">${svg("disco")}</div><div><small>Armazenamento</small><strong>${espaco} GB livres</strong></div></div>
+      </div>`;
+  }).join("");
+}
+
+/* ===== Janela de detalhes de UM jogo ===== */
+function abrirDetalhe(i){
+  pararMusica();
+  const j = JOGOS[i], p = peso(j), sel = escolhidos.includes(i);
+  const fundo = (typeof FOTOS !== "undefined" && FOTOS[i]) ? `background-image:url("${FOTOS[i]}")` : `background:${fundoCapa(j)}`;
+  const temFoto = typeof FOTOS !== "undefined" && FOTOS[i];
+  $("janela").style.setProperty("--cor", corDe(j));
+  $("janela").innerHTML = `
+    <button class="fechar" id="fechar" aria-label="Fechar">✕</button>
+    <div class="topo-jogo" style='${fundo}'>
+      ${temFoto ? "" : `<div class="icone-g">${svg(iconeDe(j))}</div>`}
+      <div>
+        <div class="kicker">Requisitos do jogo</div>
+        <h3>${j.n}</h3>
+        <div class="etiquetas">
+          <span class="etq cat">${svg(CATS[j.cat].icone)} ${j.cat}</span>
+          <span class="etq">${NOMES_PESO[p]}</span>
+          <span class="etq">${svg("disco")} ${j.d} GB</span>
+          <span class="etq">${svg("nota")} ${estiloDe(j).nome}</span>
+        </div>
+      </div>
+    </div>
+    <div class="corpo-jogo">
+      <div class="niveis">${cartoesNiveis([j], j.d, false)}</div>
+      <div class="acoes-jogo">
+        <button class="btn" id="addLista">${sel ? "✓ Na sua lista — remover" : "+ Adicionar à minha lista"}</button>
+        <button class="btn-sec" id="fechar2">Fechar</button>
+      </div>
+    </div>`;
+  $("fechar").onclick = $("fechar2").onclick = fecharDetalhe;
+  $("addLista").onclick = () => { alternar(i); fecharDetalhe(); };
+  if (!sel && escolhidos.length >= MAX) { $("addLista").disabled = true; $("addLista").textContent = "Sua lista já tem 5 jogos"; }
+  $("modal").classList.add("aberto");
+  document.body.style.overflow = "hidden";
+}
+function fecharDetalhe(){
+  $("modal").classList.remove("aberto");
+  document.body.style.overflow = "";
+}
+$("modal").onclick = e => { if (e.target.id === "modal") fecharDetalhe(); };
+addEventListener("keydown", e => { if (e.key === "Escape") fecharDetalhe(); });
+
 function desenharAbas(k){
   $("abas").innerHTML = NIVEIS.map((nv, i) =>
     `<button class="aba ${i === k ? "ativa" : ""}" onclick="desenharAbas(${i})">${nv.nome}</button>`).join("");
