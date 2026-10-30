@@ -295,6 +295,14 @@
   .aviso b{font-family:var(--mono);color:var(--amarelo)}
 
   @media (max-width:640px){
+    .hero{padding:22px 4% 8px}
+    .hero h1{font-size:2rem}
+    .hero p{font-size:.93rem;margin-top:10px}
+    .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:16px}
+    .stat{min-width:0;padding:10px 12px}
+    .stat b{font-size:1.35rem}
+    .stat small{font-size:.58rem;letter-spacing:.06em}
+    .fileira h2{font-size:1.15rem}
     .topo-jogo{height:auto;min-height:190px;padding:100px 18px 18px}
     .topo-jogo .icone-g{left:22px;top:26px;width:52px;height:52px;transform:none}
     .corpo-jogo{padding:6px 16px 18px}
@@ -1350,6 +1358,7 @@ $("copiar").onclick = async () => {
 };
 
 if (TOQUE) {
+  $("som").style.display = "none";       // no celular não há "passar o mouse", então a música não toca
   document.querySelector(".hero p").innerHTML = "Toque num jogo para ver os requisitos dele. Quer montar um PC para vários? Na janela do jogo, toque em <b>Adicionar à minha lista</b> e escolha de 1 a 5.";
   $("dica").style.display = "none";
 }
