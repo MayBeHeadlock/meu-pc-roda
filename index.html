@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-BR" data-theme="dark">
 <head>
 <meta charset="UTF-8">
 <meta name="referrer" content="strict-origin-when-cross-origin">
@@ -10,6 +10,8 @@
 <meta property="og:description" content="Descubra o PC certo para os seus jogos: centenas de jogos em 14 categorias.">
 <meta name="theme-color" content="#06070b">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2300e5ff' stroke-width='1.8' stroke-linecap='round'%3E%3Crect x='6' y='6' width='12' height='12' rx='1.5'/%3E%3Crect x='9.5' y='9.5' width='5' height='5'/%3E%3Cpath d='M9 2v4M15 2v4M9 18v4M15 18v4M2 9h4M2 15h4M18 9h4M18 15h4'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="vendor/ui-generation.css">
+<link rel="stylesheet" href="vendor/text-image-generation.css">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=JetBrains+Mono:wght@400;600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
@@ -374,6 +376,8 @@
     .carta:active{transform:scale(.97);transition-duration:.1s}
   }
   @media (pointer:coarse){ .busca input,.form-pc select,.trilha input{font-size:16px} }
+  /* Animação "IA gerando" do título (transitions.dev): pontos no tom do site */
+  html:root[data-theme="dark"]{--tig-line:#4b5468;--tig-strong:#9fb4cc;--tig-ink:rgba(200,220,240,.45);--tig-surface:#06070b;--tig-text:#eef1f7;--tig-muted:#8a91a5;--tig-font:"JetBrains Mono",monospace}
 </style>
 </head>
 <body>
@@ -1563,6 +1567,15 @@ desenharAtalhos();
 alinharFinais();
 carregarEscolhidos();
 atualizarSelecao();
+</script>
+<!-- Título do topo aparece como se uma IA estivesse desenhando cada letra (skill transitions-ui-generation) -->
+<script type="module">
+  try {
+    const { generate } = await import("./vendor/ui-generation.js");
+    await document.fonts.ready;
+    const titulo = document.querySelector(".hero h1");
+    if (titulo) generate(titulo, { variant: "text", duration: 3200 });
+  } catch (e) { /* se o arquivo não carregar (ex.: aberto direto do PC), o título só aparece normal */ }
 </script>
 </body>
 </html>
