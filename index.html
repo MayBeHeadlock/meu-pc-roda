@@ -259,6 +259,25 @@
   .peca small{display:block;font-family:var(--mono);color:var(--suave);font-size:.66rem;text-transform:uppercase;letter-spacing:.1em}
   .peca strong{font-weight:600}
   .peca .por{color:var(--suave);font-size:.76rem}
+  /* ===== Monte um PC novo ===== */
+  .montagem{margin:6px 0 34px;border:1px solid var(--borda2);background:var(--painel);padding:22px;
+      clip-path:polygon(16px 0,100% 0,100% calc(100% - 16px),calc(100% - 16px) 100%,0 100%,0 16px)}
+  .montagem h3{font-family:var(--tit);font-size:1.4rem;margin-top:6px}
+  .montagem .sub{margin:4px 0 14px}
+  .controles{display:flex;gap:16px;flex-wrap:wrap;margin-bottom:16px}
+  .grupo{display:flex;gap:6px;flex-wrap:wrap}
+  .lista-pc{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:10px}
+  .item-pc{border:1px solid var(--borda);background:rgba(255,255,255,.02);padding:12px 14px;display:flex;gap:12px}
+  .item-pc .ic{width:30px;height:30px;flex:0 0 auto;display:grid;place-items:center;color:var(--acento);border:1px solid rgba(0,229,255,.35)}
+  .item-pc .ic svg{width:17px;height:17px}
+  .item-pc small{display:block;font-family:var(--mono);color:var(--suave);font-size:.66rem;text-transform:uppercase;letter-spacing:.1em}
+  .item-pc strong{font-weight:600;display:block}
+  .item-pc .obs{margin-top:4px;font-size:.78rem;color:var(--suave);line-height:1.4}
+  .item-pc .loja span{min-width:64px}
+  .selo{display:inline-block;font-family:var(--mono);font-size:.62rem;padding:2px 7px;margin-top:4px;border:1px solid;text-transform:uppercase;letter-spacing:.05em}
+  .selo.nao{color:var(--verde);border-color:color-mix(in srgb,var(--verde) 50%,transparent)}
+  .selo.opc{color:var(--amarelo);border-color:color-mix(in srgb,var(--amarelo) 50%,transparent)}
+  .selo.sim{color:var(--vermelho);border-color:color-mix(in srgb,var(--vermelho) 50%,transparent)}
   /* Botões das lojas */
   .lojas{margin-top:8px;display:flex;flex-direction:column;gap:5px}
   .loja{display:flex;align-items:center;gap:5px;flex-wrap:wrap}
@@ -323,6 +342,7 @@
   <p class="sub" id="sub"></p>
   <div class="escolhidosRes" id="escolhidosRes"></div>
   <div class="niveis" id="niveis"></div>
+  <div class="montagem" id="montagem"></div>
   <h2 style="font-size:1.35rem">Detalhes por jogo</h2>
   <p class="sub">O que cada jogo pede em cada nível de gráfico.</p>
   <div class="abas" id="abas"></div>
@@ -560,6 +580,9 @@ const ICONES = {
   gpu:'<rect x="2" y="6" width="20" height="11" rx="1.5"/><circle cx="8.5" cy="11.5" r="3"/><circle cx="16" cy="11.5" r="3"/><path d="M4 17v3M8 17v2"/>',
   ram:'<rect x="2" y="7" width="20" height="9" rx="1"/><path d="M6 10v3M10 10v3M14 10v3M18 10v3M4 16v2M8 16v2M12 16v2M16 16v2M20 16v2"/>',
   disco:'<rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="12" cy="11" r="4"/><circle cx="12" cy="11" r="1"/><path d="M7 17h2"/>',
+  cooler:'<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="1.5"/><path d="M12 10.5c0-4 1-6.5 3-6.5s2 3-2.5 6.5M13.5 12c4 0 6.5 1 6.5 3s-3 2-6.5-2.5M12 13.5c0 4-1 6.5-3 6.5s-2-3 2.5-6.5M10.5 12c-4 0-6.5-1-6.5-3s3-2 6.5 2.5"/>',
+  placa:'<rect x="3" y="3" width="18" height="18" rx="1.5"/><rect x="7" y="7" width="6" height="6"/><path d="M16 7h2M16 10h2M7 16h10M3 9H1M3 15H1"/>',
+  fonte:'<rect x="2" y="5" width="20" height="14" rx="1.5"/><circle cx="9" cy="12" r="4"/><path d="M16 9h3M16 12h3M16 15h3"/>',
   esq:'<path d="M15 5l-7 7 7 7"/>', dir:'<path d="M9 5l7 7-7 7"/>',
 };
 
@@ -798,6 +821,7 @@ function mostrarResultado(){
   $("sub").textContent = `Espaço total para instalar todos: cerca de ${espaco} GB (de preferência em SSD).`;
   $("escolhidosRes").innerHTML = escolhidos.map(i => `<div class="slot cheio" style="background:${fundoSlot(i)}">${slotHTML(JOGOS[i])}</div>`).join("");
   $("niveis").innerHTML = cartoesNiveis(jogos, espaco, true);
+  desenharMontagem($("montagem"), jogos);
   desenharAbas(0);
   $("catalogo").style.display = "none";
   $("bandeja").classList.remove("aberta");
@@ -871,6 +895,7 @@ function abrirDetalhe(i){
     </div>
     <div class="corpo-jogo">
       <div class="niveis">${cartoesNiveis([j], j.d, false)}</div>
+      <div class="montagem" id="montagemJogo"></div>
       <div class="trilha" id="trilha"></div>
       <div class="acoes-jogo" style="margin-top:18px">
         <button class="btn" id="addLista">${sel ? "✓ Na sua lista — remover" : "+ Adicionar à minha lista"}</button>
@@ -878,6 +903,7 @@ function abrirDetalhe(i){
       </div>
     </div>`;
   desenharTrilha(j);
+  desenharMontagem($("montagemJogo"), [j]);
   $("fechar").onclick = $("fechar2").onclick = fecharDetalhe;
   $("addLista").onclick = () => { alternar(i); fecharDetalhe(); };
   if (!sel && escolhidos.length >= MAX) { $("addLista").disabled = true; $("addLista").textContent = "Sua lista já tem 5 jogos"; }
@@ -949,6 +975,89 @@ function desenharTrilha(j){
   }
 }
 function salvarTrilhas(){ try { localStorage.setItem("meupcroda-trilhas", JSON.stringify(trilhasSalvas)); } catch (e) {} }
+
+
+/* =====================================================================
+   8) MONTE UM PC NOVO
+   Os requisitos dos jogos citam muitas peças antigas, que nem se vendem
+   mais. Aqui cada nível vira uma lista de peças ATUAIS de força parecida
+   (ou maior), com placa-mãe, memória, cooler, SSD e fonte que combinam.
+   ===================================================================== */
+const FAIXAS_CPU = [   // até que "nota" de processador cada faixa atende
+  {ate:30,  amd:{cpu:"Ryzen 5 5500", placa:"B550", soquete:"AM4", ddr:"DDR4"}, intel:{cpu:"Core i3-12100F", placa:"B760", soquete:"LGA1700", ddr:"DDR4"}, cooler:"nao"},
+  {ate:50,  amd:{cpu:"Ryzen 5 5600", placa:"B550", soquete:"AM4", ddr:"DDR4"}, intel:{cpu:"Core i5-12400F", placa:"B760", soquete:"LGA1700", ddr:"DDR4"}, cooler:"nao"},
+  {ate:65,  amd:{cpu:"Ryzen 5 7600", placa:"B650", soquete:"AM5", ddr:"DDR5"}, intel:{cpu:"Core i5-13400F", placa:"B760", soquete:"LGA1700", ddr:"DDR5"}, cooler:"opc"},
+  {ate:80,  amd:{cpu:"Ryzen 7 7700", placa:"B650", soquete:"AM5", ddr:"DDR5"}, intel:{cpu:"Core i5-14600K", placa:"B760", soquete:"LGA1700", ddr:"DDR5"}, cooler:"opc"},
+  {ate:999, amd:{cpu:"Ryzen 7 7800X3D", placa:"B650", soquete:"AM5", ddr:"DDR5"}, intel:{cpu:"Core i7-14700K", placa:"Z790", soquete:"LGA1700", ddr:"DDR5"}, cooler:"sim"},
+];
+// Processadores com vídeo integrado, para quando o jogo não precisa de placa de vídeo
+const COM_VIDEO = {amd:{cpu:"Ryzen 5 5600G", placa:"B550", soquete:"AM4", ddr:"DDR4"}, intel:{cpu:"Core i5-12400", placa:"B760", soquete:"LGA1700", ddr:"DDR4"}};
+const FAIXAS_GPU = [
+  {ate:10,  gpu:null, fonte:450},
+  {ate:30,  gpu:"GTX 1650 / RX 6400", fonte:450},
+  {ate:45,  gpu:"RTX 3050 / RX 6600", fonte:550},
+  {ate:60,  gpu:"RTX 4060 / RX 7600", fonte:550},
+  {ate:90,  gpu:"RTX 4060 Ti / RX 7700 XT", fonte:650},
+  {ate:115, gpu:"RTX 5070 / RX 9070", fonte:750},
+  {ate:999, gpu:"RTX 5070 Ti / RX 9070 XT", fonte:850},
+];
+const COOLER = {
+  nao:{selo:"Não precisa de water cooler", txt:"O cooler que vem na caixa do processador já dá conta. Se quiser menos barulho, um air cooler simples resolve.", busca:"air cooler"},
+  opc:{selo:"Water cooler é opcional", txt:"Um air cooler de torre (com ventoinha de 120 mm) mantém o processador fresco. Water cooler só se você quiser o visual.", busca:"air cooler torre 120mm"},
+  sim:{selo:"Recomendado: water cooler 240 mm", txt:"Processador potente e quente: use um water cooler de 240 mm (ou 360 mm) ou um air cooler de torre dupla. Ele não vem com cooler na caixa.", busca:"water cooler 240mm"},
+};
+function tamanhoNVMe(gb){ const t = gb + 100; return t <= 450 ? "500GB" : t <= 950 ? "1TB" : t <= 1900 ? "2TB" : "4TB"; }
+
+function pecasNovas(jogos, k, marca){
+  const cs = Math.max(...jogos.map(j => j.t[k][1]));
+  const gs = Math.max(...jogos.map(j => j.t[k][3]));
+  const ramJogo = Math.max(...jogos.map(j => j.t[k][4]));
+  const espaco = jogos.reduce((s, j) => s + j.d, 0);
+  const fg = FAIXAS_GPU.find(f => gs <= f.ate);
+  const fc = FAIXAS_CPU.find(f => cs <= f.ate);
+  const semPlaca = !fg.gpu;
+  const p = semPlaca && fc.ate <= 50 ? COM_VIDEO[marca] : fc[marca];
+  const ram = ramJogo <= 16 ? 16 : 32;
+  const pentes = ram === 16 ? "2x8GB" : "2x16GB";
+  const cooler = COOLER[fc.cooler];
+  const ssd = tamanhoNVMe(espaco);
+  return [
+    {ic:"chip",  rot:"Processador", nome:p.cpu, busca:p.cpu, obs:`Soquete ${p.soquete}`},
+    {ic:"placa", rot:"Placa-mãe", nome:`Chipset ${p.placa} (${p.soquete}, ${p.ddr})`, busca:`placa mae ${p.placa} ${p.ddr}`, obs:`Precisa ser ${p.soquete} e aceitar memória ${p.ddr}.`},
+    {ic:"ram",   rot:"Memória RAM", nome:`${ram} GB ${p.ddr} (${pentes})`, busca:`memoria ${p.ddr} ${ram}GB ${pentes}`, obs:`Os jogos pedem ${ramJogo} GB. Dois pentes iguais deixam o PC mais rápido.`},
+    {ic:"cooler",rot:"Cooler", nome: fc.cooler === "sim" ? "Water cooler 240 mm" : fc.cooler === "opc" ? "Air cooler de torre" : "Cooler box (vem com o processador)", busca:cooler.busca, obs:cooler.txt, selo:fc.cooler},
+    {ic:"disco", rot:"Armazenamento", nome:`SSD NVMe ${ssd}`, busca:`SSD NVMe ${ssd}`, obs:`Os jogos ocupam cerca de ${espaco} GB, e o resto fica para o Windows e as atualizações.`},
+    semPlaca
+      ? {ic:"gpu", rot:"Placa de vídeo", nome:"Não precisa", obs:"O vídeo integrado do processador roda esses jogos."}
+      : {ic:"gpu", rot:"Placa de vídeo", nome:fg.gpu, buscaVarias:fg.gpu},
+    {ic:"fonte", rot:"Fonte", nome:`${fg.fonte}W 80 Plus ${fg.fonte >= 750 ? "Gold" : "Bronze"}`, busca:`fonte ${fg.fonte}W 80 plus`, obs:"Prefira marcas conhecidas: a fonte protege todas as outras peças."},
+  ];
+}
+
+function desenharMontagem(caixa, jogos){
+  let nivel = 1, marca = "amd";
+  const desenhar = () => {
+    const pecas = pecasNovas(jogos, nivel, marca);
+    caixa.innerHTML = `
+      <div class="kicker">Lista de compras</div>
+      <h3>Monte um PC novo</h3>
+      <p class="sub">Peças atuais com força parecida (ou maior) que a pedida, e que funcionam juntas. Escolha o nível de gráfico e a marca do processador.</p>
+      <div class="controles">
+        <div class="grupo">${NIVEIS.map((nv, i) => `<button class="aba ${i === nivel ? "ativa" : ""}" data-n="${i}">${nv.nome}</button>`).join("")}</div>
+        <div class="grupo">${["amd","intel"].map(m => `<button class="aba ${m === marca ? "ativa" : ""}" data-m="${m}">${m === "amd" ? "AMD" : "Intel"}</button>`).join("")}</div>
+      </div>
+      <div class="lista-pc">${pecas.map(pc => `
+        <div class="item-pc"><div class="ic">${svg(pc.ic)}</div><div>
+          <small>${pc.rot}</small><strong>${pc.nome}</strong>
+          ${pc.selo ? `<span class="selo ${pc.selo}">${COOLER[pc.selo].selo}</span>` : ""}
+          ${pc.obs ? `<div class="obs">${pc.obs}</div>` : ""}
+          ${pc.buscaVarias ? botoesLojas(pc.buscaVarias) : pc.busca ? botoesSimples(pc.busca) : ""}
+        </div></div>`).join("")}</div>`;
+    caixa.querySelectorAll("[data-n]").forEach(b => b.onclick = () => { nivel = +b.dataset.n; desenhar(); });
+    caixa.querySelectorAll("[data-m]").forEach(b => b.onclick = () => { marca = b.dataset.m; desenhar(); });
+  };
+  desenhar();
+}
 
 function desenharAbas(k){
   $("abas").innerHTML = NIVEIS.map((nv, i) =>
