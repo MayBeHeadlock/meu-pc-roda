@@ -2,6 +2,7 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
+<meta name="referrer" content="strict-origin-when-cross-origin">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Meu PC Roda?</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -924,7 +925,10 @@ function desenharTrilha(j){
     </div>`;
   if (player) {
     caixa.innerHTML = `<div class="kicker">Trilha oficial</div>
-      <iframe src="${player}" title="Trilha de ${j.n}" allow="autoplay; encrypted-media; picture-in-picture" allowfullscreen></iframe>
+      ${location.protocol === "file:"
+        ? `<p>O player do YouTube só funciona com o site no ar (GitHub Pages) ou aberto por um servidor local, como o Live Server do VS Code. Abrindo o arquivo direto, o YouTube bloqueia o vídeo.</p>
+           <div class="ouvir" style="margin:0 0 4px"><a href="${link}" target="_blank" rel="noopener">${svg("nota")} Ouvir a trilha oficial no YouTube</a></div>`
+        : `<iframe src="${player}" title="Trilha de ${j.n}" referrerpolicy="strict-origin-when-cross-origin" allow="autoplay; encrypted-media; picture-in-picture" allowfullscreen></iframe>`}
       ${trilhasSalvas[j.n] ? `<button class="trocar" id="trocarTrilha">Trocar ou remover o link desta trilha</button>` : ""}
       ${ouvir}`;
     const trocar = $("trocarTrilha");
