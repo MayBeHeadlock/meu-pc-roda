@@ -392,7 +392,7 @@
 <main id="catalogo">
   <section class="hero">
     <h1>Descubra o PC perfeito para os seus <span>jogos</span></h1>
-    <p>Quer saber de um jogo só? Escolha o jogo e abra <b>Ver requisitos</b>. Quer montar um PC para vários? Escolha de 1 a 5 jogos e veja o processador, a placa de vídeo e a memória para o gráfico baixo, médio e alto.</p>
+    <p>Abra a ficha técnica de qualquer jogo ou monte uma lista com até 5 e rode o diagnóstico: processador, placa de vídeo e memória calibrados para o gráfico baixo, médio e alto. Informe o <b>seu PC</b> e veja quantos FPS ele entrega.</p>
     <p class="numeros"><span class="g"><b id="totalJogos">0</b> jogos</span><span class="g"><b id="totalCats">0</b> categorias</span><span class="g"><b>3</b> níveis de gráfico</span></p>
     <div class="dica" id="dica"></div>
   </section>
@@ -1434,7 +1434,6 @@ $("copiar").onclick = async () => {
 
 if (TOQUE) {
   $("som").style.display = "none";       // no celular não há "passar o mouse", então a música não toca
-  document.querySelector(".hero p").innerHTML = "Toque num jogo para ver os requisitos dele. Quer montar um PC para vários? Na janela do jogo, toque em <b>Adicionar à minha lista</b> e escolha de 1 a 5.";
   $("dica").style.display = "none";
 }
 if (RAWG_KEY) $("creditosRodape").innerHTML = 'Dados e imagens: <a href="https://rawg.io" target="_blank" rel="noopener">RAWG</a>';
