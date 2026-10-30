@@ -73,6 +73,30 @@
 
   /* ================= FILEIRAS (estilo catálogo) ================= */
   .fileira{margin-top:10px;scroll-margin-top:128px}
+  /* ===== Meu PC ===== */
+  #som{margin-left:0}
+  .meupc-btn{margin-left:auto}
+  .meupc-btn.definido{border-color:var(--acento);color:var(--acento)}
+  .form-pc{display:grid;gap:14px;margin:16px 0}
+  .form-pc label{display:grid;gap:6px;font-family:var(--mono);font-size:.72rem;text-transform:uppercase;letter-spacing:.08em;color:var(--suave)}
+  .form-pc select{background:var(--painel2);color:var(--texto);border:1px solid var(--borda2);padding:11px 12px;font:inherit;font-size:.92rem;font-family:Inter,sans-serif;text-transform:none;letter-spacing:0}
+  .form-pc select:focus{outline:none;border-color:var(--acento)}
+  .legenda-fps{display:flex;gap:14px;flex-wrap:wrap;font-family:var(--mono);font-size:.72rem;color:var(--suave);margin-top:6px}
+  .legenda-fps span{display:flex;align-items:center;gap:6px}
+  .legenda-fps i{width:10px;height:10px;display:inline-block}
+  .fps{margin-top:14px;padding:12px 14px;border:1px solid;display:flex;align-items:baseline;justify-content:space-between;gap:10px;flex-wrap:wrap}
+  .fps b{font-family:var(--tit);font-size:1.6rem;line-height:1}
+  .fps small{font-family:var(--mono);font-size:.68rem;text-transform:uppercase;letter-spacing:.08em}
+  .fps.r{color:var(--vermelho);border-color:color-mix(in srgb,var(--vermelho) 55%,transparent);background:color-mix(in srgb,var(--vermelho) 8%,transparent)}
+  .fps.a{color:var(--amarelo);border-color:color-mix(in srgb,var(--amarelo) 55%,transparent);background:color-mix(in srgb,var(--amarelo) 8%,transparent)}
+  .fps.v{color:var(--verde);border-color:color-mix(in srgb,var(--verde) 55%,transparent);background:color-mix(in srgb,var(--verde) 8%,transparent)}
+  .seu{font-size:.76rem;margin-top:3px;display:flex;align-items:center;gap:5px}
+  .seu.ok{color:var(--verde)} .seu.nao{color:var(--vermelho)}
+  .convite-pc{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;padding:14px 16px;margin-bottom:18px;border:1px dashed var(--borda2);color:var(--suave);font-size:.9rem}
+  .veredito{padding:16px 18px;margin-bottom:18px;border:1px solid;display:flex;gap:14px;align-items:center;flex-wrap:wrap}
+  .veredito b{font-family:var(--tit);font-size:1.15rem}
+  .veredito.r{border-color:var(--vermelho)} .veredito.a{border-color:var(--amarelo)} .veredito.v{border-color:var(--verde)}
+  .veredito .meu{font-family:var(--mono);font-size:.74rem;color:var(--suave)}
   /* Atalhos das categorias */
   .atalhos{position:sticky;top:67px;z-index:45;display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;padding:10px 4%;
       background:rgba(6,7,11,.82);backdrop-filter:blur(14px);border-bottom:1px solid var(--borda)}
@@ -321,6 +345,7 @@
 
 <nav>
   <div class="logo"><span class="chip" id="logoChip"></span><span class="txt">MEU PC <b>RODA?</b></span></div>
+  <button class="som meupc-btn" id="btnMeuPC"></button>
   <button class="som" id="som"></button>
   <label class="busca"><span id="lupa"></span><input id="busca" type="search" placeholder="Buscar jogo..."></label>
 </nav>
@@ -347,6 +372,7 @@
   <h2>O PC que você precisa</h2>
   <p class="sub" id="sub"></p>
   <div class="escolhidosRes" id="escolhidosRes"></div>
+  <div id="veredito"></div>
   <div class="niveis" id="niveis"></div>
   <h2 style="font-size:1.35rem">Detalhes por jogo</h2>
   <p class="sub">O que cada jogo pede em cada nível de gráfico.</p>
@@ -832,6 +858,7 @@ function mostrarResultado(){
   $("sub").textContent = `Espaço total para instalar todos: cerca de ${espaco} GB (de preferência em SSD).`;
   $("escolhidosRes").innerHTML = escolhidos.map(i => `<div class="slot cheio" style="background:${fundoSlot(i)}">${slotHTML(JOGOS[i])}</div>`).join("");
   $("niveis").innerHTML = cartoesNiveis(jogos, espaco, true);
+  desenharVeredito(jogos);
   desenharAbas(0);
   $("catalogo").style.display = "none";
   $("bandeja").classList.remove("aberta");
@@ -850,10 +877,11 @@ function cartoesNiveis(jogos, espaco, mostrarQuem){
     return `<div class="nivel ${nv.id}">
         <div class="num">NÍVEL 0${k + 1}</div>
         <h3>${nv.nome}</h3><p class="desc">${nv.desc}</p>
-        <div class="peca"><div class="ic">${svg("chip")}</div><div><small>Processador</small><strong>${cpu.t[k][0]}</strong>${quem(cpu, "exigido")}</div></div>
-        <div class="peca"><div class="ic">${svg("gpu")}</div><div><small>Placa de vídeo</small><strong>${gpu.t[k][2]}</strong>${quem(gpu, "exigida")}</div></div>
-        <div class="peca"><div class="ic">${svg("ram")}</div><div><small>Memória RAM</small><strong>${ram} GB</strong></div></div>
+        <div class="peca"><div class="ic">${svg("chip")}</div><div><small>Processador</small><strong>${cpu.t[k][0]}</strong>${quem(cpu, "exigido")}${comparar("cpu", cpu.t[k][1])}</div></div>
+        <div class="peca"><div class="ic">${svg("gpu")}</div><div><small>Placa de vídeo</small><strong>${gpu.t[k][2]}</strong>${quem(gpu, "exigida")}${comparar("gpu", gpu.t[k][3])}</div></div>
+        <div class="peca"><div class="ic">${svg("ram")}</div><div><small>Memória RAM</small><strong>${ram} GB</strong>${comparar("ram", ram)}</div></div>
         <div class="peca"><div class="ic">${svg("disco")}</div><div><small>Armazenamento</small><strong>${espaco} GB livres</strong></div></div>
+        ${caixaFPS(jogos, k)}
       </div>`;
   }).join("");
 }
@@ -1364,6 +1392,130 @@ if (TOQUE) {
 }
 if (RAWG_KEY) $("creditosRodape").innerHTML = 'Dados e imagens: <a href="https://rawg.io" target="_blank" rel="noopener">RAWG</a>';
 
+/* =====================================================================
+   10) MEU PC — comparar o PC da pessoa com o recomendado e estimar FPS
+   As "notas" usam a mesma escala dos requisitos dos jogos.
+   ===================================================================== */
+const PECAS_CPU = {
+  "Intel (antigos)":[["Core 2 Duo",5],["Core 2 Quad",8],["Core i3-2100",12],["Core i3-4160",19],["Core i3-6100",22],["Core i3-8100",32],["Core i5-2500K",22],["Core i5-3470",22],["Core i5-4590",25],["Core i5-6600K",30],["Core i5-7400",32],["Core i7-3770",28],["Core i7-4770K",30],["Core i7-6700K",38],["Core i7-7700K",42]],
+  "Intel":[["Core i3-10100",38],["Core i3-12100",52],["Core i5-8400",42],["Core i5-9400F",46],["Core i5-10400",52],["Core i5-11400",56],["Core i5-12400",62],["Core i5-13400",66],["Core i5-12600K",70],["Core i5-13600K",78],["Core i5-14600K",80],["Core i7-8700K",52],["Core i7-9700K",56],["Core i7-10700K",62],["Core i7-12700K",78],["Core i7-13700K",88],["Core i7-14700K",92],["Core i9-9900K",62],["Core i9-12900K",85],["Core i9-13900K",95],["Core i9-14900K",98],["Core Ultra 5 245K",80],["Core Ultra 7 265K",92]],
+  "AMD":[["FX-4300",15],["FX-6300",18],["FX-8350",22],["Athlon 3000G",15],["Ryzen 3 1200",22],["Ryzen 3 3100",32],["Ryzen 3 3300X",40],["Ryzen 5 1600",32],["Ryzen 5 2600",36],["Ryzen 5 3600",52],["Ryzen 5 4500",48],["Ryzen 5 5500",55],["Ryzen 5 5600G",56],["Ryzen 5 5600 / 5600X",62],["Ryzen 5 7600",72],["Ryzen 5 8600G",66],["Ryzen 5 9600X",80],["Ryzen 7 1700",34],["Ryzen 7 2700X",40],["Ryzen 7 3700X",58],["Ryzen 7 5700X",66],["Ryzen 7 5800X",70],["Ryzen 7 5800X3D",80],["Ryzen 7 7700",80],["Ryzen 7 7800X3D",92],["Ryzen 7 9800X3D",100],["Ryzen 9 5900X",75],["Ryzen 9 7950X",95]],
+};
+const PECAS_GPU = {
+  "Vídeo integrado":[["Intel HD 4000",5],["Intel UHD 620 / 630",8],["Intel Iris Xe",12],["AMD Vega 8 (Ryzen 3000/5000G)",8],["AMD Radeon 680M / 780M",30]],
+  "NVIDIA (antigas)":[["GT 730",8],["GT 1030",10],["GTX 650",12],["GTX 750 Ti",18],["GTX 660",18],["GTX 760",18],["GTX 950",25],["GTX 960",25],["GTX 970",30],["GTX 1050",25],["GTX 1050 Ti",30],["GTX 1060 3GB",36],["GTX 1060 6GB",40],["GTX 1070",48],["GTX 1080",60],["GTX 1080 Ti",72],["GTX 1650",30],["GTX 1660",48],["GTX 1660 Super / Ti",52]],
+  "NVIDIA RTX":[["RTX 2060",58],["RTX 2060 Super",68],["RTX 2070",68],["RTX 2070 Super",72],["RTX 2080",78],["RTX 2080 Ti",90],["RTX 3050",44],["RTX 3060",66],["RTX 3060 Ti",80],["RTX 3070",88],["RTX 3070 Ti",92],["RTX 3080",105],["RTX 3090",115],["RTX 4060",76],["RTX 4060 Ti",84],["RTX 4070",110],["RTX 4070 Super",122],["RTX 4070 Ti",126],["RTX 4070 Ti Super",130],["RTX 4080",150],["RTX 4090",190],["RTX 5060",82],["RTX 5060 Ti",92],["RTX 5070",125],["RTX 5070 Ti",145],["RTX 5080",160],["RTX 5090",220]],
+  "AMD Radeon":[["RX 550",10],["RX 560",18],["RX 470",25],["RX 570",30],["RX 580",40],["RX 590",44],["RX 5500 XT",42],["RX 5600 XT",52],["RX 5700",60],["RX 5700 XT",68],["RX 6500 XT",32],["RX 6600",62],["RX 6600 XT",66],["RX 6650 XT",68],["RX 6700 XT",88],["RX 6800",98],["RX 6800 XT",112],["RX 7600",74],["RX 7700 XT",100],["RX 7800 XT",110],["RX 7900 GRE",118],["RX 7900 XT",135],["RX 7900 XTX",155],["RX 9060 XT",92],["RX 9070",135],["RX 9070 XT",150]],
+  "Intel Arc":[["Arc A580",62],["Arc A750",70],["Arc A770",76],["Arc B580",82]],
+};
+const OPCOES_RAM = [4, 8, 12, 16, 24, 32, 64];
+const nota = (tabela, nome) => { for (const l of Object.values(tabela)) { const p = l.find(x => x[0] === nome); if (p) return p[1]; } return null; };
+
+let meuPC = null;
+try { meuPC = JSON.parse(localStorage.getItem("meupcroda-meupc") || "null"); } catch (e) {}
+const temPC = () => meuPC && nota(PECAS_CPU, meuPC.cpu) !== null && nota(PECAS_GPU, meuPC.gpu) !== null;
+
+/* Estimativa de FPS.
+   Os requisitos de cada nível miram ~60 FPS. Então, se a placa da pessoa é
+   o dobro da pedida, ela deve rodar perto de 120 FPS; se é a metade, ~30.
+   O processador limita de um jeito mais suave, e pouca RAM causa travadas. */
+function estimarFPS(jogos, k){
+  if (!temPC()) return null;
+  const pedeCPU = Math.max(...jogos.map(j => j.t[k][1]));
+  const pedeGPU = Math.max(...jogos.map(j => j.t[k][3]));
+  const pedeRAM = Math.max(...jogos.map(j => j.t[k][4]));
+  const fpsGPU = 60 * (nota(PECAS_GPU, meuPC.gpu) / Math.max(pedeGPU, 3));
+  const fpsCPU = 70 * Math.pow(nota(PECAS_CPU, meuPC.cpu) / Math.max(pedeCPU, 4), .8);
+  let fps = Math.min(fpsGPU, fpsCPU);
+  if (meuPC.ram < pedeRAM) fps *= .85 * Math.pow(meuPC.ram / pedeRAM, .7);
+  return Math.max(5, Math.min(240, Math.round(fps / 5) * 5));
+}
+const corFPS = f => f >= 60 ? "v" : f >= 30 ? "a" : "r";
+const nomeFPS = f => f >= 60 ? "Ótimo" : f >= 30 ? "Médio" : "Baixo";
+
+function comparar(tipo, pedido){
+  if (!temPC()) return "";
+  const tem = tipo === "cpu" ? nota(PECAS_CPU, meuPC.cpu) : tipo === "gpu" ? nota(PECAS_GPU, meuPC.gpu) : meuPC.ram;
+  const nome = tipo === "cpu" ? meuPC.cpu : tipo === "gpu" ? meuPC.gpu : meuPC.ram + " GB";
+  const ok = tem >= pedido;
+  return `<div class="seu ${ok ? "ok" : "nao"}">${ok ? "✓" : "✗"} Seu: ${nome}</div>`;
+}
+function caixaFPS(jogos, k){
+  const f = estimarFPS(jogos, k);
+  if (f === null) return "";
+  return `<div class="fps ${corFPS(f)}"><small>Seu PC</small><b>~${f}${f >= 240 ? "+" : ""} FPS</b><small>${nomeFPS(f)}</small></div>`;
+}
+function desenharVeredito(jogos){
+  const caixa = $("veredito");
+  if (!temPC()) {
+    caixa.innerHTML = `<div class="convite-pc"><span>Quer saber se o <b>seu</b> PC roda e com quantos FPS?</span><button class="btn-sec" id="convitePC">Informar meu PC</button></div>`;
+    $("convitePC").onclick = abrirMeuPC; return;
+  }
+  const fps = NIVEIS.map((nv, k) => estimarFPS(jogos, k));
+  let melhor = -1; fps.forEach((f, k) => { if (f >= 60) melhor = k; });
+  const roda = fps.some(f => f >= 30);
+  const cls = melhor >= 0 ? "v" : roda ? "a" : "r";
+  const txt = melhor >= 0 ? `Seu PC roda bem até o ${NIVEIS[melhor].nome.toLowerCase()}`
+            : roda ? "Seu PC roda, mas abaixo de 60 FPS" : "Seu PC deve ter dificuldade para rodar";
+  caixa.innerHTML = `<div class="veredito ${cls}"><b>${txt}</b><span class="meu">${meuPC.cpu} · ${meuPC.gpu} · ${meuPC.ram} GB</span>
+    <button class="btn-sec" id="trocarPC" style="margin-left:auto">Trocar meu PC</button></div>`;
+  $("trocarPC").onclick = abrirMeuPC;
+}
+
+/* Janela para escolher as peças do PC */
+function opcoes(tabela, atual){
+  return Object.entries(tabela).map(([grupo, lista]) =>
+    `<optgroup label="${grupo}">${lista.map(([n]) => `<option ${n === atual ? "selected" : ""}>${n}</option>`).join("")}</optgroup>`).join("");
+}
+function abrirMeuPC(){
+  pararMusica();
+  const atual = meuPC || {cpu:"Ryzen 5 5600 / 5600X", gpu:"RTX 3060", ram:16};
+  $("janela").style.setProperty("--cor", "#00e5ff");
+  $("janela").innerHTML = `
+    <button class="fechar" id="fechar" aria-label="Fechar">✕</button>
+    <div class="corpo-jogo" style="padding-top:26px">
+      <div class="kicker">Meu PC</div>
+      <h3 style="font-family:var(--tit);font-size:1.8rem">Qual é o seu computador?</h3>
+      <p class="sub" style="margin-top:6px">Escolha as peças que você tem. O site compara com o recomendado e estima quantos FPS você teria em cada nível.</p>
+      <div class="form-pc">
+        <label>Processador<select id="selCPU">${opcoes(PECAS_CPU, atual.cpu)}</select></label>
+        <label>Placa de vídeo<select id="selGPU">${opcoes(PECAS_GPU, atual.gpu)}</select></label>
+        <label>Memória RAM<select id="selRAM">${OPCOES_RAM.map(r => `<option value="${r}" ${r === +atual.ram ? "selected" : ""}>${r} GB</option>`).join("")}</select></label>
+      </div>
+      <div class="legenda-fps"><span><i style="background:var(--vermelho)"></i>Baixo: menos de 30 FPS</span><span><i style="background:var(--amarelo)"></i>Médio: 30 a 59 FPS</span><span><i style="background:var(--verde)"></i>Ótimo: 60 FPS ou mais</span></div>
+      <p class="sub" style="font-size:.8rem;margin-top:10px">Não sabe suas peças? No Windows, aperte Ctrl + Shift + Esc, abra a aba Desempenho e veja CPU, Memória e GPU.</p>
+      <div class="acoes-jogo" style="margin-top:16px">
+        <button class="btn" id="salvarPC">Salvar meu PC</button>
+        ${meuPC ? `<button class="btn-sec" id="apagarPC">Remover</button>` : ""}
+      </div>
+    </div>`;
+  $("fechar").onclick = fecharDetalhe;
+  $("salvarPC").onclick = () => {
+    meuPC = {cpu: $("selCPU").value, gpu: $("selGPU").value, ram: +$("selRAM").value};
+    try { localStorage.setItem("meupcroda-meupc", JSON.stringify(meuPC)); } catch (e) {}
+    depoisDeMudarPC();
+  };
+  if ($("apagarPC")) $("apagarPC").onclick = () => {
+    meuPC = null; try { localStorage.removeItem("meupcroda-meupc"); } catch (e) {}
+    depoisDeMudarPC();
+  };
+  $("modal").classList.add("aberto");
+  document.body.style.overflow = "hidden";
+}
+function depoisDeMudarPC(){
+  fecharDetalhe();
+  atualizarBotaoPC();
+  if ($("resultado").style.display === "block") mostrarResultado();
+}
+function atualizarBotaoPC(){
+  const b = $("btnMeuPC");
+  b.innerHTML = svg("chip") + `<span>${temPC() ? meuPC.gpu : "Meu PC"}</span>`;
+  b.title = temPC() ? `${meuPC.cpu} · ${meuPC.gpu} · ${meuPC.ram} GB` : "Informar meu PC";
+  b.classList.toggle("definido", temPC());
+}
+$("btnMeuPC").onclick = abrirMeuPC;
+
+atualizarBotaoPC();
 desenharFileiras();
 desenharAtalhos();
 alinharFinais();
