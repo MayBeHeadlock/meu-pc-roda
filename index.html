@@ -159,6 +159,19 @@
   .corpo-jogo{padding:6px 26px 26px}
   .corpo-jogo .niveis{margin:14px 0 18px}
   .acoes-jogo{display:flex;gap:10px;flex-wrap:wrap}
+  .trilha{margin-top:18px;padding:16px;border:1px solid var(--borda2);background:rgba(255,255,255,.02)}
+  .trilha .kicker{margin-bottom:10px}
+  .trilha iframe{width:100%;aspect-ratio:16/9;max-height:320px;border:0;display:block;background:#000}
+  .trilha p{color:var(--suave);font-size:.85rem;margin-bottom:10px}
+  .trilha .linha-link{display:flex;gap:8px;flex-wrap:wrap}
+  .trilha input{flex:1;min-width:220px;background:rgba(255,255,255,.04);border:1px solid var(--borda2);color:var(--texto);padding:10px 12px;font:inherit;font-size:.85rem}
+  .trilha input:focus{outline:none;border-color:var(--acento)}
+  .ouvir{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+  .ouvir a{display:inline-flex;align-items:center;gap:6px;padding:8px 12px;border:1px solid var(--borda2);color:var(--texto);text-decoration:none;
+      font-family:var(--mono);font-size:.72rem;text-transform:uppercase;letter-spacing:.05em;clip-path:var(--corte);transition:.25s}
+  .ouvir a:hover{background:rgba(255,255,255,.08);border-color:var(--acento)}
+  .ouvir a svg{width:14px;height:14px}
+  .trocar{background:none;color:var(--suave);font-family:var(--mono);font-size:.7rem;text-decoration:underline;margin-top:8px}
   .fechar{position:absolute;top:14px;right:14px;z-index:2;width:36px;height:36px;display:grid;place-items:center;background:rgba(0,0,0,.55);
       border:1px solid var(--borda2);font-size:1.1rem;clip-path:var(--corte)}
   .fechar:hover{background:#fff;color:#000}
@@ -785,11 +798,13 @@ function abrirDetalhe(i){
     </div>
     <div class="corpo-jogo">
       <div class="niveis">${cartoesNiveis([j], j.d, false)}</div>
-      <div class="acoes-jogo">
+      <div class="trilha" id="trilha"></div>
+      <div class="acoes-jogo" style="margin-top:18px">
         <button class="btn" id="addLista">${sel ? "✓ Na sua lista — remover" : "+ Adicionar à minha lista"}</button>
         <button class="btn-sec" id="fechar2">Fechar</button>
       </div>
     </div>`;
+  desenharTrilha(j);
   $("fechar").onclick = $("fechar2").onclick = fecharDetalhe;
   $("addLista").onclick = () => { alternar(i); fecharDetalhe(); };
   if (!sel && escolhidos.length >= MAX) { $("addLista").disabled = true; $("addLista").textContent = "Sua lista já tem 5 jogos"; }
@@ -798,10 +813,66 @@ function abrirDetalhe(i){
 }
 function fecharDetalhe(){
   $("modal").classList.remove("aberto");
+  const t = $("trilha"); if (t) t.innerHTML = "";        // tira o player para a música parar
   document.body.style.overflow = "";
 }
 $("modal").onclick = e => { if (e.target.id === "modal") fecharDetalhe(); };
 addEventListener("keydown", e => { if (e.key === "Escape") fecharDetalhe(); });
+
+
+/* =====================================================================
+   7) TRILHA OFICIAL (player do YouTube na janela do jogo)
+   Coloque aqui só links de canais OFICIAIS (da empresa do jogo, do
+   compositor ou da gravadora). Pode ser um vídeo ou uma playlist.
+   ===================================================================== */
+const TRILHAS = {
+  "Minecraft": "https://www.youtube.com/playlist?list=OLAK5uy_lNojWuj8PKhbqVFZBpSkUpCYcrJbYt8s4",
+};
+// Links que você colar pelo site ficam guardados no seu navegador
+let trilhasSalvas = {};
+try { trilhasSalvas = JSON.parse(localStorage.getItem("meupcroda-trilhas") || "{}"); } catch (e) {}
+
+// Transforma um link do YouTube no endereço do player
+function linkDoPlayer(link){
+  if (!link) return null;
+  const lista = link.match(/[?&]list=([\w-]+)/);
+  if (lista) return `https://www.youtube-nocookie.com/embed/videoseries?list=${lista[1]}`;
+  const video = link.match(/(?:v=|youtu\.be\/|embed\/|shorts\/)([\w-]{11})/);
+  return video ? `https://www.youtube-nocookie.com/embed/${video[1]}` : null;
+}
+
+function desenharTrilha(j){
+  const caixa = $("trilha");
+  const link = trilhasSalvas[j.n] || TRILHAS[j.n];
+  const player = linkDoPlayer(link);
+  const busca = encodeURIComponent(j.n + " official soundtrack");
+  const ouvir = `<div class="ouvir">
+      <a href="https://www.youtube.com/results?search_query=${busca}" target="_blank" rel="noopener">${svg("nota")} Procurar no YouTube</a>
+      <a href="https://open.spotify.com/search/${encodeURIComponent(j.n + " soundtrack")}" target="_blank" rel="noopener">${svg("nota")} Procurar no Spotify</a>
+    </div>`;
+  if (player) {
+    caixa.innerHTML = `<div class="kicker">Trilha oficial</div>
+      <iframe src="${player}" title="Trilha de ${j.n}" allow="autoplay; encrypted-media; picture-in-picture" allowfullscreen></iframe>
+      ${trilhasSalvas[j.n] ? `<button class="trocar" id="trocarTrilha">Trocar ou remover o link desta trilha</button>` : ""}
+      ${ouvir}`;
+    const trocar = $("trocarTrilha");
+    if (trocar) trocar.onclick = () => { delete trilhasSalvas[j.n]; salvarTrilhas(); desenharTrilha(j); };
+  } else {
+    caixa.innerHTML = `<div class="kicker">Trilha oficial</div>
+      <p>Este jogo ainda não tem a trilha aqui. Encontre o vídeo ou a playlist no canal oficial do jogo e cole o link:</p>
+      <div class="linha-link">
+        <input id="linkTrilha" placeholder="https://www.youtube.com/watch?v=...">
+        <button class="btn-sec" id="salvarTrilha">Salvar</button>
+      </div>
+      ${ouvir}`;
+    $("salvarTrilha").onclick = () => {
+      const valor = $("linkTrilha").value.trim();
+      if (!linkDoPlayer(valor)) { $("linkTrilha").value = ""; $("linkTrilha").placeholder = "Esse link não parece ser do YouTube. Tente de novo."; return; }
+      trilhasSalvas[j.n] = valor; salvarTrilhas(); desenharTrilha(j);
+    };
+  }
+}
+function salvarTrilhas(){ try { localStorage.setItem("meupcroda-trilhas", JSON.stringify(trilhasSalvas)); } catch (e) {} }
 
 function desenharAbas(k){
   $("abas").innerHTML = NIVEIS.map((nv, i) =>
@@ -898,41 +969,93 @@ function sementeDoNome(nome){ let h = 7; for (const c of nome) h = Math.imul(h ^
 const freq = midi => 440 * Math.pow(2, (midi - 69) / 12);
 
 // Liga o áudio (o navegador só deixa tocar som depois de um clique)
+// Instrumento e acompanhamento de cada estilo
+// inst = instrumento da melodia · fundo = acordes longos por trás · arpejo = notas do acorde tocadas uma a uma
+const ARRANJO = {
+  orquestral:{inst:"cordas",    fundo:"cordas", arpejo:false, eco:.55},
+  synthwave: {inst:"synth",     fundo:"synth",  arpejo:true,  eco:.4},
+  chiptune:  {inst:"chip",      fundo:null,     arpejo:true,  eco:.15},
+  calmo:     {inst:"piano",     fundo:"cordas", arpejo:false, eco:.6},
+  folk:      {inst:"dedilhado", fundo:"cordas", arpejo:true,  eco:.35},
+  metal:     {inst:"guitarra",  fundo:null,     arpejo:false, eco:.2},
+  eletronico:{inst:"chip",      fundo:"synth",  arpejo:true,  eco:.3},
+  oriental:  {inst:"dedilhado", fundo:"cordas", arpejo:false, eco:.5},
+  rock:      {inst:"guitarra",  fundo:null,     arpejo:false, eco:.25},
+  urbano:    {inst:"piano",     fundo:"synth",  arpejo:false, eco:.3},
+  faroeste:  {inst:"dedilhado", fundo:null,     arpejo:true,  eco:.45},
+  terror:    {inst:"sino",      fundo:"cordas", arpejo:false, eco:.7},
+};
+const INST_POR_ONDA = {sine:"piano", triangle:"dedilhado", square:"chip", sawtooth:"synth"};
+function arranjoDe(j){
+  const e = ESTILO_DO_JOGO[j.n];
+  if (e) return ARRANJO[e];
+  const h = HUMOR[j.cat] || HUMOR["Mais jogados"];
+  return {inst: INST_POR_ONDA[h.onda], fundo: j.cat === "Terror" ? "cordas" : "synth", arpejo: !!h.bateria, eco: .4};
+}
+
+let ambiente = null;   // "sala" com reverberação (deixa o som mais natural)
 function iniciarAudio(){
   ctx = new (window.AudioContext || window.webkitAudioContext)();
-  saida = ctx.createGain(); saida.gain.value = .9;
-  // Eco leve para deixar o som mais "cheio"
-  const eco = ctx.createDelay(); eco.delayTime.value = .28;
-  const volta = ctx.createGain(); volta.gain.value = .28;
-  saida.connect(ctx.destination); saida.connect(eco); eco.connect(volta); volta.connect(eco); volta.connect(ctx.destination);
-  // Ruído branco, usado para fazer a bateria (chimbal e caixa)
+  saida = ctx.createGain(); saida.gain.value = .85;
+  // Compressor: evita que o som estoure quando várias notas tocam juntas
+  const comp = ctx.createDynamicsCompressor(); comp.threshold.value = -16; comp.ratio.value = 4;
+  saida.connect(comp); comp.connect(ctx.destination);
+  // Reverberação feita com um "eco" de ruído que vai sumindo (simula uma sala grande)
+  ambiente = ctx.createConvolver();
+  const dur = 2.6, len = ctx.sampleRate * dur, ir = ctx.createBuffer(2, len, ctx.sampleRate);
+  for (let c = 0; c < 2; c++) { const d = ir.getChannelData(c); for (let k = 0; k < len; k++) d[k] = (Math.random() * 2 - 1) * Math.pow(1 - k / len, 3); }
+  ambiente.buffer = ir; ambiente.connect(comp);
   ruido = ctx.createBuffer(1, ctx.sampleRate, ctx.sampleRate);
   const d = ruido.getChannelData(0); for (let k = 0; k < d.length; k++) d[k] = Math.random() * 2 - 1;
 }
 
-// Cria a "partitura" de um jogo: melodia, baixo e tempo
+// Cria a "partitura": 4 compassos de acordes, melodia com refrão (A A B A) e baixo
 function comporMusica(j){
-  const h = estiloDe(j);
+  const h = estiloDe(j), arr = arranjoDe(j);
   const r = aleatorio(sementeDoNome(j.n));
-  const tom = 45 + Math.floor(r() * 7);                    // nota base (entre Lá e Mi)
-  const graus = [0, [3,4,5][Math.floor(r()*3)], [2,4,5][Math.floor(r()*3)], [3,4][Math.floor(r()*2)]];
+  const tom = 45 + Math.floor(r() * 7);
   const escala = h.escala, n = escala.length;
-  const notaDaEscala = g => tom + 12 * Math.floor(g / n) + escala[((g % n) + n) % n];
-  // Melodia: 32 colcheias (4 compassos), andando pela escala como um "passeio"
-  let pos = n + Math.floor(r() * n), melodia = [];
-  const motivo = [];                                       // um pedacinho que se repete, como num refrão
-  for (let k = 0; k < 8; k++) { pos += Math.floor(r() * 5) - 2; pos = Math.max(n, Math.min(n*3 - 1, pos)); motivo.push(r() < (h.pausa ?? .22) ? null : pos); }
-  for (let c = 0; c < 4; c++) motivo.forEach((m, k) => melodia.push(m === null ? null : (c === 2 && k > 3 ? m + graus[c] % 3 : m)));
-  return { h, melodia: melodia.map(g => g === null ? null : notaDaEscala(g) + 12),
-           baixo: graus.map(g => notaDaEscala(g) - 12), passo: 60 / h.bpm / 2 };
+  const nota = g => tom + 12 * Math.floor(g / n) + escala[((g % n) + n) % n];
+  // Sequência de acordes (graus da escala), sorteada a partir do nome do jogo
+  const opcoes = [[0,3,4,0],[0,5,3,4],[0,4,5,3],[0,2,3,4],[0,5,2,4],[0,3,5,4]];
+  const graus = opcoes[Math.floor(r() * opcoes.length)];
+  const acordes = graus.map(g => [nota(g), nota(g + 2), nota(g + 4)]);
+  // Frase principal (A) e uma frase de contraste (B)
+  const frase = inicio => { let pos = inicio, f = [];
+    for (let k = 0; k < 8; k++) { pos += Math.floor(r() * 5) - 2; pos = Math.max(n, Math.min(n * 3 - 1, pos)); f.push(r() < (h.pausa ?? .22) ? null : pos); }
+    f[0] = f[0] ?? inicio; return f; };
+  const A = frase(n + Math.floor(r() * n)), B = frase(n * 2 + Math.floor(r() * 3));
+  const ordem = [A, A, B, A];
+  const melodia = [];
+  ordem.forEach((f, c) => f.forEach((g, k) => melodia.push(g === null ? null : nota(g + (c === 1 && k > 5 ? 1 : 0)) + 12)));
+  return { h, arr, melodia, acordes, baixo: graus.map(g => nota(g) - 12), passo: 60 / h.bpm / 2 };
 }
 
-function tocarNota(f, t, dur, onda, vol, destino){
-  const o = ctx.createOscillator(), g = ctx.createGain();
-  o.type = onda; o.frequency.value = f;
-  g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(vol, t + .01); g.gain.exponentialRampToValueAtTime(.0001, t + dur);
-  o.connect(g); g.connect(destino); o.start(t); o.stop(t + dur + .05);
+// Toca uma nota com o "instrumento" escolhido
+function tocarInstrumento(tipo, f, t, dur, vol, destino){
+  const g = ctx.createGain(), filtro = ctx.createBiquadFilter();
+  filtro.type = "lowpass"; filtro.connect(g); g.connect(destino);
+  const osc = (onda, desafino = 0) => { const o = ctx.createOscillator(); o.type = onda; o.frequency.value = f; o.detune.value = desafino;
+    o.connect(filtro); o.start(t); o.stop(t + dur + 1.2); return o; };
+  const env = (ataque, sustenta, solta) => {
+    g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(vol, t + ataque);
+    g.gain.setTargetAtTime(vol * sustenta, t + ataque, dur * .3); g.gain.setTargetAtTime(0, t + dur, solta);
+  };
+  if (tipo === "cordas") { osc("sawtooth", -7); osc("sawtooth", 7); filtro.frequency.value = 1400; env(Math.min(.35, dur * .4), .8, .35); }
+  else if (tipo === "synth") { osc("sawtooth", -10); osc("square", 10); filtro.frequency.setValueAtTime(600, t); filtro.frequency.linearRampToValueAtTime(2600, t + .08); filtro.frequency.setTargetAtTime(900, t + .1, .2); env(.01, .6, .12); }
+  else if (tipo === "chip") { osc("square"); filtro.frequency.value = 5000; env(.005, .5, .05); }
+  else if (tipo === "piano") { osc("triangle"); osc("sine", 1200); filtro.frequency.value = 3000; env(.005, .15, .5); }
+  else if (tipo === "dedilhado") { osc("triangle"); osc("sawtooth", 3); filtro.frequency.setValueAtTime(3200, t); filtro.frequency.setTargetAtTime(700, t, .12); env(.003, .1, .25); }
+  else if (tipo === "guitarra") {
+    const dist = ctx.createWaveShaper(), curva = new Float32Array(256);
+    for (let k = 0; k < 256; k++) { const x = k / 128 - 1; curva[k] = Math.tanh(x * 6); }
+    dist.curve = curva; filtro.disconnect(); filtro.connect(dist); dist.connect(g);
+    osc("sawtooth", -5); osc("sawtooth", 5); filtro.frequency.value = 2200; env(.005, .7, .08);
+  }
+  else if (tipo === "sino") { osc("sine"); osc("sine", 1902); filtro.frequency.value = 6000; env(.002, .05, 1.4); }
+  else { osc("sine"); env(.01, .5, .2); }
 }
+function tocarNota(f, t, dur, onda, vol, destino){ tocarInstrumento(INST_POR_ONDA[onda] || "piano", f, t, dur, vol, destino); }
 function tocarRuido(t, dur, vol, corte, destino){
   const s = ctx.createBufferSource(), f = ctx.createBiquadFilter(), g = ctx.createGain();
   s.buffer = ruido; f.type = "highpass"; f.frequency.value = corte;
@@ -950,28 +1073,36 @@ function tocarMusica(i, carta){
   if (!somLigado || !ctx) return;
   pararMusica();
   const m = comporMusica(JOGOS[i]);
-  const vol = ctx.createGain();                            // volume desta música (para o "fade")
+  const vol = ctx.createGain();
   vol.gain.setValueAtTime(0, ctx.currentTime);
-  vol.gain.linearRampToValueAtTime(.32, ctx.currentTime + .6);
+  vol.gain.linearRampToValueAtTime(.3, ctx.currentTime + .8);
   vol.connect(saida);
+  const eco = ctx.createGain(); eco.gain.value = m.arr.eco; vol.connect(eco); eco.connect(ambiente);
   let passo = 0, quando = ctx.currentTime + .05;
-  // Agenda as notas um pouquinho antes de tocarem (fica sem engasgos)
   const relogio = setInterval(() => {
     while (quando < ctx.currentTime + .15) {
-      const k = passo % 32, compasso = Math.floor(k / 8);
+      const k = passo % 32, compasso = Math.floor(k / 8), volta = Math.floor(passo / 32);
+      const intro = volta === 0 && compasso === 0;          // 1º compasso: só acordes e baixo (introdução)
+      const acorde = m.acordes[compasso];
+      // Acordes longos de fundo
+      if (k % 8 === 0 && m.arr.fundo) acorde.forEach(n => tocarInstrumento(m.arr.fundo, freq(n), quando, m.passo * 7.5, .07, vol));
+      // Arpejo: notas do acorde subindo
+      if (m.arr.arpejo && !intro) tocarInstrumento(m.arr.inst === "guitarra" ? "dedilhado" : m.arr.inst, freq(acorde[k % 3] + 12), quando, m.passo * .9, .05, vol);
+      // Melodia
       const nota = m.melodia[k];
-      if (nota) tocarNota(freq(nota), quando, m.passo * (m.h.dur || 1.6), m.h.onda, m.h.onda === "sine" ? .35 : .13, vol);
-      if (k % 2 === 0) tocarNota(freq(m.baixo[compasso]), quando, m.passo * 1.8, "triangle", .45, vol);
-      if (k % 8 === 0) tocarNota(freq(m.baixo[compasso] + 12 + m.h.escala[2 % m.h.escala.length]), quando, m.passo * 7, "sine", .12, vol);
-      if (m.h.bateria) {
+      if (nota && !intro) tocarInstrumento(m.arr.inst, freq(nota), quando, m.passo * (m.h.dur || 1.6), m.arr.inst === "chip" ? .09 : .16, vol);
+      // Baixo
+      if (k % 2 === 0) tocarNota(freq(m.baixo[compasso]), quando, m.passo * 1.8, "triangle", .4, vol);
+      // Bateria
+      if (m.h.bateria && !intro) {
         if (k % 4 === 0 || (m.h.bateria === "4x4" && k % 2 === 0)) tocarBumbo(quando, vol);
-        if (k % 4 === 2) tocarRuido(quando, .12, .35, 1500, vol);
-        tocarRuido(quando, .04, .12, 7000, vol);
+        if (k % 4 === 2) tocarRuido(quando, .12, .3, 1500, vol);
+        tocarRuido(quando, .04, .1, 7000, vol);
       }
       quando += m.passo; passo++;
     }
   }, 25);
-  atual = { vol, relogio, carta };
+  atual = { vol, relogio, carta, eco };
   carta.classList.add("tocando");
 }
 
@@ -985,6 +1116,7 @@ function pararMusica(){
   vol.gain.setValueAtTime(vol.gain.value, t);
   vol.gain.linearRampToValueAtTime(0, t + .4);            // vai sumindo devagar
   setTimeout(() => { clearInterval(relogio); vol.disconnect(); }, 450);
+  // (o eco some sozinho junto com o volume)
 }
 
 // Botão de ligar/desligar o som
