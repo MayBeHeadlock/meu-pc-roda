@@ -74,7 +74,7 @@
   .fileira h2 .qtd{font-family:var(--mono);font-size:.75rem;color:var(--suave);font-weight:400}
   .fileira h2 .traco{flex:1;height:1px;background:linear-gradient(90deg,color-mix(in srgb,var(--cor) 60%,transparent),transparent)}
   .trilho{position:relative}
-  .cartas{display:flex;gap:12px;overflow-x:auto;scroll-behavior:smooth;padding:34px 4%;scrollbar-width:none;scroll-snap-type:x proximity}
+  .cartas{display:flex;gap:12px;overflow-x:auto;scroll-behavior:smooth;padding:34px 4%;scrollbar-width:none;scroll-snap-type:x mandatory;scroll-padding-inline:4%}
   .cartas::-webkit-scrollbar{display:none}
   .seta{position:absolute;top:34px;bottom:34px;width:4%;min-width:46px;z-index:30;display:grid;place-items:center;opacity:0;transition:opacity .3s var(--curva)}
   .seta svg{width:28px;height:28px;transition:transform .3s var(--curva)}
@@ -566,6 +566,7 @@ function criarCarta(i){
   el.className = "carta";
   el.dataset.i = i;
   el.tabIndex = 0;
+  el.onmousedown = e => e.preventDefault();   // impede a fileira de "pular" sozinha ao clicar
   el.style.setProperty("--cor", corDe(j));
   el.innerHTML = `
     <div class="capa" style="background:${fundoCapa(j)}">
@@ -597,6 +598,18 @@ function criarCarta(i){
 }
 
 /* ===== Fileiras de categorias ===== */
+const fileirasRolaveis = [];
+// Coloca um espacinho extra no fim de cada fileira, para que até a última
+// posição da rolagem pare com a primeira carta alinhada na margem
+function alinharFinais(){
+  fileirasRolaveis.forEach(c => {
+    c.style.paddingRight = "";
+    const passo = c.firstElementChild.offsetWidth + 12;
+    const sobra = (c.scrollWidth - c.clientWidth) % passo;
+    if (c.scrollWidth > c.clientWidth && sobra > 1) c.style.paddingRight = `calc(4% + ${passo - sobra}px)`;
+  });
+}
+addEventListener("resize", alinharFinais);
 function desenharFileiras(){
   for (const [cat, lista] of Object.entries(CATALOGO)) {
     const sec = document.createElement("section");
@@ -611,8 +624,15 @@ function desenharFileiras(){
       </div>`;
     const cartas = sec.querySelector(".cartas");
     lista.forEach(l => cartas.appendChild(criarCarta(vistos[l.split("|")[0]])));
-    sec.querySelector(".esq").onclick = () => cartas.scrollBy({left: -cartas.clientWidth * .85, behavior: "smooth"});
-    sec.querySelector(".dir").onclick = () => cartas.scrollBy({left:  cartas.clientWidth * .85, behavior: "smooth"});
+    // As setas andam um número inteiro de cartas, assim a fileira sempre para alinhada
+    const andar = lado => {
+      const passo = cartas.firstElementChild.offsetWidth + 12;            // largura da carta + espaço entre elas
+      const quantas = Math.max(1, Math.floor(cartas.clientWidth * .9 / passo));
+      cartas.scrollBy({left: lado * quantas * passo, behavior: "smooth"});
+    };
+    fileirasRolaveis.push(cartas);
+    sec.querySelector(".esq").onclick = () => andar(-1);
+    sec.querySelector(".dir").onclick = () => andar(1);
     $("fileiras").appendChild(sec);
   }
   $("totalJogos").textContent = JOGOS.length;
@@ -977,6 +997,7 @@ $("som").innerHTML = svg("somOff") + "<span>Som desligado</span>";
 $("dica").innerHTML = svg("nota") + "Ligue o som e passe o mouse num jogo para ouvir a música dele";
 
 desenharFileiras();
+alinharFinais();
 atualizarSelecao();
 </script>
 </body>
