@@ -259,17 +259,6 @@
   .peca small{display:block;font-family:var(--mono);color:var(--suave);font-size:.66rem;text-transform:uppercase;letter-spacing:.1em}
   .peca strong{font-weight:600}
   .peca .por{color:var(--suave);font-size:.76rem}
-  /* Botões das lojas */
-  .lojas{margin-top:8px;display:flex;flex-direction:column;gap:5px}
-  .loja{display:flex;align-items:center;gap:5px;flex-wrap:wrap}
-  .loja span{font-family:var(--mono);font-size:.68rem;color:var(--suave);min-width:86px}
-  .loja a{font-family:var(--mono);font-size:.62rem;text-transform:uppercase;letter-spacing:.04em;color:var(--texto);text-decoration:none;
-      padding:4px 8px;border:1px solid var(--borda2);transition:.2s var(--curva)}
-  .loja a:hover{border-color:var(--c);color:var(--c);background:color-mix(in srgb,var(--c) 10%,transparent)}
-  .loja a.kabum:hover{border-color:#ff6500;color:#ff6500}
-  .loja a.pichau:hover{border-color:#e4202a;color:#ff4d55}
-  .loja a.terabyte:hover{border-color:#1e88e5;color:#4aa8ff}
-  .peca .obs{font-size:.72rem;color:var(--suave);margin-top:4px}
   .abas{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap}
   .aba{color:var(--suave);padding:8px 14px;border:1px solid var(--borda2);clip-path:var(--corte);font-family:var(--mono);font-size:.78rem;text-transform:uppercase;letter-spacing:.05em;transition:.25s}
   .aba.ativa{color:#001218;background:var(--acento);border-color:var(--acento)}
@@ -805,29 +794,6 @@ function mostrarResultado(){
   window.scrollTo({top: 0, behavior: "smooth"});
 }
 
-
-/* ===== Botões para procurar a peça nas lojas =====
-   Abrem a busca da peça direto no site da loja (o preço é o do dia). */
-const LOJAS = [
-  {nome:"KaBuM!",   classe:"kabum",    url: t => `https://www.kabum.com.br/busca/${encodeURIComponent(t.toLowerCase().replace(/\s+/g, "-"))}`},
-  {nome:"Pichau",   classe:"pichau",   url: t => `https://www.pichau.com.br/search?q=${encodeURIComponent(t)}`},
-  {nome:"Terabyte", classe:"terabyte", url: t => `https://www.terabyteshop.com.br/busca?str=${encodeURIComponent(t)}`},
-];
-// Só faz botão para peças com nome de modelo (ex.: "RTX 3060"), não para "Dual-core de 2 GHz"
-const EH_MODELO = /(Intel Core|Ryzen|FX-|Athlon|Phenom|GTX|RTX|RX |GT |HD \d|R9 |R7 |Vega|Arc )/i;
-function botoesLojas(texto){
-  if (/integrada/i.test(texto)) return `<div class="obs">Vídeo integrado: já vem no processador, não precisa comprar placa.</div>`;
-  const opcoes = texto.split(" / ").map(o => o.replace(/\s*\(.*?\)/g, "").trim()).filter(o => EH_MODELO.test(o));
-  if (!opcoes.length) return "";
-  return `<div class="lojas">${opcoes.map(o => `<div class="loja"><span>${o.replace(/^Intel Core /, "")}</span>${
-    LOJAS.map(l => `<a class="${l.classe}" href="${l.url(o)}" target="_blank" rel="noopener">${l.nome}</a>`).join("")}</div>`).join("")}</div>`;
-}
-function botoesSimples(busca){
-  return `<div class="lojas"><div class="loja">${LOJAS.map(l => `<a class="${l.classe}" href="${l.url(busca)}" target="_blank" rel="noopener">${l.nome}</a>`).join("")}</div></div>`;
-}
-// Tamanho de SSD comercial que cabe os jogos
-function tamanhoSSD(gb){ return gb <= 200 ? "SSD 480GB" : gb <= 400 ? "SSD 1TB" : gb <= 900 ? "SSD 2TB" : "SSD 4TB"; }
-
 /* ===== Cartões dos 3 níveis (usados no resultado e na janela de um jogo) =====
    Em cada nível, o PC precisa aguentar o jogo MAIS PESADO da lista. */
 function cartoesNiveis(jogos, espaco, mostrarQuem){
@@ -839,10 +805,10 @@ function cartoesNiveis(jogos, espaco, mostrarQuem){
     return `<div class="nivel ${nv.id}">
         <div class="num">NÍVEL 0${k + 1}</div>
         <h3>${nv.nome}</h3><p class="desc">${nv.desc}</p>
-        <div class="peca"><div class="ic">${svg("chip")}</div><div><small>Processador</small><strong>${cpu.t[k][0]}</strong>${quem(cpu, "exigido")}${botoesLojas(cpu.t[k][0])}</div></div>
-        <div class="peca"><div class="ic">${svg("gpu")}</div><div><small>Placa de vídeo</small><strong>${gpu.t[k][2]}</strong>${quem(gpu, "exigida")}${botoesLojas(gpu.t[k][2])}</div></div>
-        <div class="peca"><div class="ic">${svg("ram")}</div><div><small>Memória RAM</small><strong>${ram} GB</strong>${botoesSimples(`memoria ram ${ram}GB`)}</div></div>
-        <div class="peca"><div class="ic">${svg("disco")}</div><div><small>Armazenamento</small><strong>${espaco} GB livres</strong>${botoesSimples(tamanhoSSD(espaco))}</div></div>
+        <div class="peca"><div class="ic">${svg("chip")}</div><div><small>Processador</small><strong>${cpu.t[k][0]}</strong>${quem(cpu, "exigido")}</div></div>
+        <div class="peca"><div class="ic">${svg("gpu")}</div><div><small>Placa de vídeo</small><strong>${gpu.t[k][2]}</strong>${quem(gpu, "exigida")}</div></div>
+        <div class="peca"><div class="ic">${svg("ram")}</div><div><small>Memória RAM</small><strong>${ram} GB</strong></div></div>
+        <div class="peca"><div class="ic">${svg("disco")}</div><div><small>Armazenamento</small><strong>${espaco} GB livres</strong></div></div>
       </div>`;
   }).join("");
 }
