@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="referrer" content="strict-origin-when-cross-origin">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content">
 <title>Meu PC Roda?</title>
 <meta name="description" content="Escolha seus jogos e descubra o processador, a placa de vídeo e a memória que você precisa para jogar no gráfico baixo, médio e alto.">
 <meta property="og:title" content="Meu PC Roda?">
@@ -62,7 +62,7 @@
   .kicker::before{content:"";width:8px;height:8px;background:var(--acento);box-shadow:0 0 12px var(--acento);animation:pisca 1.6s infinite}
   @keyframes pisca{50%{opacity:.25}}
   .hero h1{font-family:var(--tit);font-weight:700;font-size:clamp(2.2rem,5.6vw,4rem);line-height:1.03;max-width:780px;margin-top:12px;letter-spacing:-.02em}
-  .hero h1 span{background:linear-gradient(90deg,var(--acento),var(--acento2));-webkit-background-clip:text;background-clip:text;color:transparent}
+  .hero h1 span{color:var(--acento)}
   .hero p{color:#b7bccb;max-width:600px;margin-top:14px;font-size:1.03rem}
   .stats{display:flex;gap:12px;margin-top:24px;flex-wrap:wrap}
   .stat{padding:12px 18px;min-width:120px;border:1px solid var(--borda2);background:rgba(255,255,255,.02);clip-path:var(--corte)}
@@ -133,7 +133,7 @@
 
   /* ================= CARTA DO JOGO ================= */
   .carta{flex:0 0 auto;width:236px;aspect-ratio:16/9;position:relative;scroll-snap-align:start;border-radius:6px;cursor:pointer;
-      transition:transform .45s var(--curva),box-shadow .45s var(--curva);will-change:transform;z-index:1}
+      transition:transform .45s var(--curva),box-shadow .45s var(--curva);z-index:1}
   .carta:hover{transform:scale(1.32);z-index:20;transition-delay:.08s;
       box-shadow:0 20px 44px rgba(0,0,0,.8),0 0 0 1px color-mix(in srgb,var(--cor) 70%,transparent),0 0 34px color-mix(in srgb,var(--cor) 40%,transparent)}
   .capa{position:absolute;inset:0;border-radius:inherit;overflow:hidden}
@@ -339,6 +339,41 @@
     .bandeja .titulo{width:100%}
     .slot{width:78px}
   }
+  /* ===== Polimento: foco, seleção, celular ===== */
+  html{-webkit-tap-highlight-color:transparent;-webkit-text-size-adjust:100%;scrollbar-color:#2a2f40 var(--bg);accent-color:var(--acento);caret-color:var(--acento)}
+  ::selection{background:rgba(0,229,255,.28);color:#fff}
+  :focus-visible{outline:2px solid var(--acento);outline-offset:3px}
+  .carta:focus-visible{outline-offset:4px}
+  .carta:focus-within .info{opacity:1}
+  button,a,.carta,[role="button"]{touch-action:manipulation}
+  button,.carta,.atalho,.slot{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+  .cartas{overscroll-behavior-x:contain}
+  nav{padding-top:max(14px,env(safe-area-inset-top))}
+  .bandeja{padding-bottom:max(12px,env(safe-area-inset-bottom))}
+  .numeros{margin-top:18px;font-family:var(--mono);font-size:.82rem;color:var(--suave);letter-spacing:.02em}
+  .numeros b{font-family:var(--tit);font-size:1.15rem;color:var(--texto);font-weight:700}
+  .numeros{display:flex;flex-wrap:wrap;gap:4px 18px}
+  .numeros .g{white-space:nowrap}
+  .sub-tit{font-family:var(--tit);font-size:1rem;font-weight:600;margin-bottom:10px}
+  .info .add svg{width:14px;height:14px}
+  .fechar svg{width:18px;height:18px}
+  .seu svg{width:13px;height:13px;flex:0 0 auto}
+  .btn:active,.btn-sec:active,.atalho:active,.aba:active{transform:scale(.97)}
+  /* Toque: sem "hover preso" depois do toque; o retorno vem no aperto */
+  @media (hover:none){
+    .carta:hover{transform:none;box-shadow:none}
+    .carta:hover .info{opacity:0}
+    .carta:hover .icone{transform:translate(-50%,-50%);opacity:1}
+    .carta:hover .capa .nome{opacity:1;transform:none}
+    .carta:hover .capa .luz{opacity:0;animation:none}
+    .carta:hover .capa{box-shadow:none}
+    .carta:hover .capa .aba{opacity:1}
+    .carta:hover .capa .seta-aba{transform:none;opacity:1}
+    .carta.com-foto:hover .foto{transform:none}
+    .trilho:hover .seta{opacity:0}
+    .carta:active{transform:scale(.97);transition-duration:.1s}
+  }
+  @media (pointer:coarse){ .busca input,.form-pc select,.trilha input{font-size:16px} }
 </style>
 </head>
 <body>
@@ -347,19 +382,14 @@
   <div class="logo"><span class="chip" id="logoChip"></span><span class="txt">MEU PC <b>RODA?</b></span></div>
   <button class="som meupc-btn" id="btnMeuPC"></button>
   <button class="som" id="som"></button>
-  <label class="busca"><span id="lupa"></span><input id="busca" type="search" placeholder="Buscar jogo..."></label>
+  <label class="busca"><span id="lupa"></span><input id="busca" type="search" placeholder="Buscar jogo..." aria-label="Buscar jogo" enterkeyhint="search" autocomplete="off"></label>
 </nav>
 
 <main id="catalogo">
   <section class="hero">
-    <div class="kicker">Diagnóstico de hardware</div>
     <h1>Descubra o PC certo para os seus <span>5 jogos</span></h1>
     <p>Quer saber de um jogo só? Passe o mouse nele e clique em <b>Ver requisitos</b>. Quer montar um PC para vários? Escolha de 1 a 5 jogos e veja o processador, a placa de vídeo e a memória para o gráfico baixo, médio e alto.</p>
-    <div class="stats">
-      <div class="stat"><b id="totalJogos">0</b><small>Jogos</small></div>
-      <div class="stat"><b id="totalCats">0</b><small>Categorias</small></div>
-      <div class="stat"><b>03</b><small>Níveis gráficos</small></div>
-    </div>
+    <p class="numeros"><span class="g"><b id="totalJogos">0</b> jogos</span><span class="g"><b id="totalCats">0</b> categorias</span><span class="g"><b>3</b> níveis de gráfico</span></p>
     <div class="dica" id="dica"></div>
   </section>
   <nav class="atalhos" id="atalhos" aria-label="Categorias"></nav>
@@ -368,7 +398,6 @@
 </main>
 
 <section id="resultado">
-  <div class="kicker">Relatório do sistema</div>
   <h2>O PC que você precisa</h2>
   <p class="sub" id="sub"></p>
   <div class="escolhidosRes" id="escolhidosRes"></div>
@@ -383,7 +412,7 @@
 </section>
 
 <!-- Janela com os requisitos de um jogo só -->
-<div class="modal" id="modal"><div class="janela" id="janela"></div></div>
+<div class="modal" id="modal"><div class="janela" id="janela" role="dialog" aria-modal="true" aria-label="Detalhes"></div></div>
 
 <footer class="rodape"><span><b>Meu PC Roda?</b> · requisitos aproximados para 1080p</span><span id="creditosRodape"></span></footer>
 <footer class="creditos" id="creditos" style="display:none">Dados e imagens dos jogos: <a href="https://rawg.io" target="_blank" rel="noopener">RAWG</a></footer>
@@ -616,6 +645,9 @@ const ICONES = {
   ram:'<rect x="2" y="7" width="20" height="9" rx="1"/><path d="M6 10v3M10 10v3M14 10v3M18 10v3M4 16v2M8 16v2M12 16v2M16 16v2M20 16v2"/>',
   disco:'<rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="12" cy="11" r="4"/><circle cx="12" cy="11" r="1"/><path d="M7 17h2"/>',
   livro:'<path d="M3 4h6a3 3 0 0 1 3 3v14a2.5 2.5 0 0 0-2.5-2.5H3z"/><path d="M21 4h-6a3 3 0 0 0-3 3v14a2.5 2.5 0 0 1 2.5-2.5H21z"/>',
+  mais:'<path d="M12 5v14M5 12h14"/>',
+  check:'<path d="M5 12.5l4.5 4.5L19 7"/>',
+  x:'<path d="M6 6l12 12M18 6L6 18"/>',
   esq:'<path d="M15 5l-7 7 7 7"/>', dir:'<path d="M9 5l7 7-7 7"/>',
 };
 
@@ -715,6 +747,8 @@ function criarCarta(i){
   el.className = "carta";
   el.dataset.i = i;
   el.tabIndex = 0;
+  el.setAttribute("role", "button");
+  el.setAttribute("aria-label", JOGOS[i].n);
   el.onmousedown = e => e.preventDefault();   // impede a fileira de "pular" sozinha ao clicar
   el.style.setProperty("--cor", corDe(j));
   el.innerHTML = `
@@ -727,7 +761,7 @@ function criarCarta(i){
       <span class="luz"></span>
     </div>
     <div class="info">
-      <button class="add" title="Escolher">+</button>
+      <button class="add" title="Escolher" aria-label="Escolher ${j.n}">${svg("mais")}</button>
       <button class="det" title="Ver requisitos só deste jogo">Ver requisitos</button>
       <div class="eq"><i></i><i></i><i></i><i></i></div>
       <div class="t">${j.n}</div>
@@ -829,7 +863,8 @@ function atualizarSelecao(){
     const sel = escolhidos.includes(+c.dataset.i);
     c.classList.toggle("sel", sel);
     c.classList.toggle("bloq", cheio && !sel);
-    c.querySelector(".add").textContent = sel ? "✓" : "+";
+    c.querySelector(".add").innerHTML = svg(sel ? "check" : "mais");
+    c.setAttribute("aria-pressed", sel);
   });
   $("qtd").textContent = escolhidos.length;
   $("bandeja").classList.toggle("aberta", escolhidos.length > 0);
@@ -875,7 +910,6 @@ function cartoesNiveis(jogos, espaco, mostrarQuem){
     const ram = Math.max(...jogos.map(j => j.t[k][4]));
     const quem = (j, txt) => mostrarQuem && jogos.length > 1 ? `<div class="por">${txt} por ${j.n}</div>` : "";
     return `<div class="nivel ${nv.id}">
-        <div class="num">NÍVEL 0${k + 1}</div>
         <h3>${nv.nome}</h3><p class="desc">${nv.desc}</p>
         <div class="peca"><div class="ic">${svg("chip")}</div><div><small>Processador</small><strong>${cpu.t[k][0]}</strong>${quem(cpu, "exigido")}${comparar("cpu", cpu.t[k][1])}</div></div>
         <div class="peca"><div class="ic">${svg("gpu")}</div><div><small>Placa de vídeo</small><strong>${gpu.t[k][2]}</strong>${quem(gpu, "exigida")}${comparar("gpu", gpu.t[k][3])}</div></div>
@@ -886,6 +920,14 @@ function cartoesNiveis(jogos, espaco, mostrarQuem){
   }).join("");
 }
 
+/* ===== Abrir janela: guarda o foco e leva o teclado para dentro dela ===== */
+let focoAntes = null;
+function abrirModal(){
+  focoAntes = document.activeElement;
+  $("modal").classList.add("aberto");
+  setTimeout(() => { const f = $("fechar"); if (f) f.focus({preventScroll: true}); }, 50);
+}
+
 /* ===== Janela de detalhes de UM jogo ===== */
 function abrirDetalhe(i){
   pararMusica();
@@ -894,11 +936,10 @@ function abrirDetalhe(i){
   const temFoto = typeof FOTOS !== "undefined" && FOTOS[i];
   $("janela").style.setProperty("--cor", corDe(j));
   $("janela").innerHTML = `
-    <button class="fechar" id="fechar" aria-label="Fechar">✕</button>
+    <button class="fechar" id="fechar" aria-label="Fechar">${svg("x")}</button>
     <div class="topo-jogo" style='${fundo}'>
       ${temFoto ? "" : `<div class="icone-g">${svg(iconeDe(j))}</div>`}
       <div>
-        <div class="kicker">Requisitos do jogo</div>
         <h3>${j.n}</h3>
         <div class="etiquetas">
           <span class="etq cat">${svg(CATS[j.cat].icone)} ${j.cat}</span>
@@ -920,13 +961,15 @@ function abrirDetalhe(i){
   $("fechar").onclick = $("fechar2").onclick = fecharDetalhe;
   $("addLista").onclick = () => { alternar(i); fecharDetalhe(); };
   if (!sel && escolhidos.length >= MAX) { $("addLista").disabled = true; $("addLista").textContent = "Sua lista já tem 5 jogos"; }
-  $("modal").classList.add("aberto");
+  abrirModal();
   document.body.style.overflow = "hidden";
 }
 function fecharDetalhe(){
+  if (!$("modal").classList.contains("aberto")) return;
   $("modal").classList.remove("aberto");
   const t = $("trilha"); if (t) t.innerHTML = "";        // tira o player para a música parar
   document.body.style.overflow = "";
+  if (focoAntes && focoAntes.focus) focoAntes.focus({preventScroll: true});
 }
 $("modal").onclick = e => { if (e.target.id === "modal") fecharDetalhe(); };
 addEventListener("keydown", e => { if (e.key === "Escape") fecharDetalhe(); });
@@ -963,7 +1006,7 @@ function desenharTrilha(j){
       <a href="https://open.spotify.com/search/${encodeURIComponent(j.n + " soundtrack")}" target="_blank" rel="noopener">${svg("nota")} Procurar no Spotify</a>
     </div>`;
   if (player) {
-    caixa.innerHTML = `<div class="kicker">Trilha oficial</div>
+    caixa.innerHTML = `<h4 class="sub-tit">Trilha oficial</h4>
       ${location.protocol === "file:"
         ? `<p>O player do YouTube só funciona com o site no ar (GitHub Pages) ou aberto por um servidor local, como o Live Server do VS Code. Abrindo o arquivo direto, o YouTube bloqueia o vídeo.</p>
            <div class="ouvir" style="margin:0 0 4px"><a href="${link}" target="_blank" rel="noopener">${svg("nota")} Ouvir a trilha oficial no YouTube</a></div>`
@@ -973,7 +1016,7 @@ function desenharTrilha(j){
     const trocar = $("trocarTrilha");
     if (trocar) trocar.onclick = () => { delete trilhasSalvas[j.n]; salvarTrilhas(); desenharTrilha(j); };
   } else {
-    caixa.innerHTML = `<div class="kicker">Trilha oficial</div>
+    caixa.innerHTML = `<h4 class="sub-tit">Trilha oficial</h4>
       <p>Este jogo ainda não tem a trilha aqui. Encontre o vídeo ou a playlist no canal oficial do jogo e cole o link:</p>
       <div class="linha-link">
         <input id="linkTrilha" placeholder="https://www.youtube.com/watch?v=...">
@@ -1438,7 +1481,7 @@ function comparar(tipo, pedido){
   const tem = tipo === "cpu" ? nota(PECAS_CPU, meuPC.cpu) : tipo === "gpu" ? nota(PECAS_GPU, meuPC.gpu) : meuPC.ram;
   const nome = tipo === "cpu" ? meuPC.cpu : tipo === "gpu" ? meuPC.gpu : meuPC.ram + " GB";
   const ok = tem >= pedido;
-  return `<div class="seu ${ok ? "ok" : "nao"}">${ok ? "✓" : "✗"} Seu: ${nome}</div>`;
+  return `<div class="seu ${ok ? "ok" : "nao"}">${svg(ok ? "check" : "x")} Seu: ${nome}</div>`;
 }
 function caixaFPS(jogos, k){
   const f = estimarFPS(jogos, k);
@@ -1472,9 +1515,8 @@ function abrirMeuPC(){
   const atual = meuPC || {cpu:"Ryzen 5 5600 / 5600X", gpu:"RTX 3060", ram:16};
   $("janela").style.setProperty("--cor", "#00e5ff");
   $("janela").innerHTML = `
-    <button class="fechar" id="fechar" aria-label="Fechar">✕</button>
+    <button class="fechar" id="fechar" aria-label="Fechar">${svg("x")}</button>
     <div class="corpo-jogo" style="padding-top:26px">
-      <div class="kicker">Meu PC</div>
       <h3 style="font-family:var(--tit);font-size:1.8rem">Qual é o seu computador?</h3>
       <p class="sub" style="margin-top:6px">Escolha as peças que você tem. O site compara com o recomendado e estima quantos FPS você teria em cada nível.</p>
       <div class="form-pc">
@@ -1499,7 +1541,7 @@ function abrirMeuPC(){
     meuPC = null; try { localStorage.removeItem("meupcroda-meupc"); } catch (e) {}
     depoisDeMudarPC();
   };
-  $("modal").classList.add("aberto");
+  abrirModal();
   document.body.style.overflow = "hidden";
 }
 function depoisDeMudarPC(){
@@ -1509,7 +1551,7 @@ function depoisDeMudarPC(){
 }
 function atualizarBotaoPC(){
   const b = $("btnMeuPC");
-  b.innerHTML = svg("chip") + `<span>${temPC() ? meuPC.gpu : "Meu PC"}</span>`;
+  b.innerHTML = svg("gpu") + `<span>${temPC() ? meuPC.gpu : "Meu PC"}</span>`;
   b.title = temPC() ? `${meuPC.cpu} · ${meuPC.gpu} · ${meuPC.ram} GB` : "Informar meu PC";
   b.classList.toggle("definido", temPC());
 }
